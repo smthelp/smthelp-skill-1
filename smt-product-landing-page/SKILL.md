@@ -8,6 +8,8 @@ version: 1.6.0
 
 把「1688 产品链接 → Southern Machinery 品牌英文 Landing Page → 线上发布实测」固化为可复用流程。v1.0.0 由 S-680A SMT Reel Scrap Tape Cutter 项目沉淀。
 
+> 需要「源素材（PDF/淘宝/1688/图片）+ 主题 → 7 语言、暗黑/明亮、8 篇六步法博客、SEO/GEO、Chatwoot」的参数化单文件页时，改用同仓库的 `../smt-source-to-landing-page/`（v1.0.0，配置驱动构建 + 34 项 Playwright 验收）。本技能保留不变。
+
 ## 适用场景
 
 - 用户给出 1688/供应商链接或产品型号，要求生成外贸产品页 / landing page / product presentation HTML
