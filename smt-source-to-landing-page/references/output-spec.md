@@ -78,3 +78,9 @@
 - [ ] FAB tab、视频筛选与点击加载、lightbox、PDF 预览、文章展开、计算器可用
 - [ ] 博客数 = blog_count
 - [ ] 人工目检截图：light_top、dark_middle、ar_middle、mobile_ar_top 至少 3 张
+
+
+## 6. 可选组件的验收（1.1.0 起）
+
+启用 `matcher` 时 verify 追加：`matcher_rows_rendered`、`matcher_filter_reduces`（逐个包装筛选，至少一个 0 < 行数 < 总数）、`matcher_filters_combine`（类别 + 脚距组合后行数不增且与计数文字一致）、`matcher_reset`、`matcher_search`、`matcher_empty_state`、`matcher_detail_inquiry`（wa.me?text= 与 mailto 链接）、`matcher_detail_close`（Esc）、`matcher_check_part`、`matcher_labels_translated`（6 种非英语表头 ≠ 英文，且无 `mx_` 原始 key）、`matcher_mobile_cards_en` / `_ar`（390 px：卡片、表头隐藏、无元素越界），并截 `*_matcher.png`、`mobile_*_matcher.png`。
+启用 `npi` 时追加 `npi_stepper`（跳到最后一步、勾选改变进度、下一步按钮），JSON-LD 必须含 `HowTo`，截 `*_npi.png`。

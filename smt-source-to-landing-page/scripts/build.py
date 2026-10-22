@@ -27,9 +27,9 @@ LANG_META = {
     "ar": ("rtl", "العربية", "AR", "ar_AR"), "ru": ("ltr", "Русский", "RU", "ru_RU"),
     "zh": ("ltr", "中文", "ZH", "zh_CN"),
 }
-# Six-step brief labels that must never appear in a heading or title, in any language.
+# Six-step brief labels (and the method's author name) that must never appear in a heading or title, in any language.
 BANNED = {
-    "en": ["hook", "diagnosis", "diagnose", "framework", "vehicle", "loop", "cta", "call to action"],
+    "en": ["hook", "diagnosis", "diagnose", "framework", "vehicle", "loop", "cta", "call to action", "dan koe"],
     "es": ["gancho", "diagnóstico", "marco de trabajo", "vehículo", "bucle", "llamada a la acción"],
     "pt": ["gancho", "diagnóstico", "estrutura de trabalho", "veículo", "loop", "chamada para ação", "chamada à ação"],
     "fr": ["accroche", "hameçon", "diagnostic", "framework", "véhicule", "boucle", "appel à l'action", "appel à l’action"],
@@ -130,13 +130,13 @@ class Page:
       %s
       <h1>%s<br><em data-i18n="hero_h1b">%s</em></h1>
       %s
-      <div class="acts"><a class="btn btn-p" href="#contact" data-i18n="hero_cta1">%s</a><a class="btn btn-s" href="#spec" data-i18n="hero_cta2">%s</a></div>
+      <div class="acts"><a class="btn btn-p" href="#contact" data-i18n="hero_cta1">%s</a><a class="btn btn-s" href="%s" data-i18n="hero_cta2">%s</a></div>
       %s
     </div>
     <div class="herofig"><div class="heroimgs playing" id="heroImgs">%s</div>%s</div>
   </div>
 </section>''' % (self.span("hero_badge", "span", "badge"), self.span("hero_h1a"), t("hero_h1b"), self.span("hero_sub", "p", "sub"),
-                 t("hero_cta1"), t("hero_cta2"), self.span("hero_note", "p", "hnote"), imgs, cap)
+                 t("hero_cta1"), self.cfg["hero"].get("cta2_href", "#spec"), t("hero_cta2"), self.span("hero_note", "p", "hnote"), imgs, cap)
 
     def s_metrics(self):
         m = self.cfg["metrics"]
@@ -192,6 +192,123 @@ class Page:
   </figure>
 </div>%s
 </div></section>''' % (self.sec_class("how"), self.head2("how_kick", "how_h2", "how_lead"), steps, self.ev(h.get("evidence", "c")), art, legend, t("how_ev"), safe)
+
+    # ------------------------------------------------------------ optional: component -> feeder quick-match (since 1.1.0)
+    def mx_data(self):
+        """Matcher data: product.json "matcher" may hold the data inline or name a JSON file in the product folder."""
+        if getattr(self, "_mx", None) is None:
+            m = self.cfg.get("matcher", {})
+            d = m.get("data", "matcher.json")
+            self._mx = load_json(os.path.join(self.dir, d)) if isinstance(d, str) else d
+        return self._mx
+
+    def mx_keys(self):
+        """Every i18n key the matcher runtime looks up at run time (rows are rendered by runtime.js)."""
+        D, keys = self.mx_data(), set()
+        for c in D["categories"]:
+            keys.add("mx_c_" + c)
+        for p_ in D["packaging"]:
+            keys.add("mx_p_" + p_)
+        for f in D["feeders"]:
+            keys.update(("mx_f_%sn" % f["id"], "mx_f_%sd" % f["id"], "mx_fo_%s" % f["id"]))
+        for n in D.get("nozzles", []):
+            keys.add("mx_n_" + n)
+        for s_ in D.get("statuses", []):
+            keys.add("mx_s_" + s_)
+        for s_ in D.get("sources", []):
+            keys.add("mx_src_" + s_)
+        for r in D["rows"]:
+            keys.add("mx_t_" + r["type"])
+            if r.get("note"):
+                keys.add("mx_note_" + r["note"])
+        keys.update(["mx_col_comp", "mx_col_cat", "mx_col_pack", "mx_col_body", "mx_col_pitch", "mx_col_leads", "mx_col_ld",
+                     "mx_col_feeder", "mx_col_nozzle", "mx_col_status", "mx_count", "mx_or", "mx_d_spec", "mx_d_body", "mx_d_oh",
+                     "mx_d_feeder", "mx_d_nozzle", "mx_d_status", "mx_d_src", "mx_d_note", "mx_d_env", "mx_ask_wa", "mx_ask_mail",
+                     "mx_ask_msg", "mx_ask_subj", "mx_chk_none", "mx_chk_fit", "mx_chk_out", "mx_d_page", "mx_unknown_v"])
+        return keys
+
+    def s_matcher(self):
+        t, D, m = self.t, self.mx_data(), self.cfg.get("matcher", {})
+        bins = D["bins"]
+
+        def sel(sid, key, opts):
+            o = '<option value="" data-i18n="mx_any">%s</option>' % t("mx_any")
+            for val, lab, i18n in opts:
+                o += '<option value="%s"%s>%s</option>' % (html.escape(str(val)), ' data-i18n="%s"' % lab if i18n else ' dir="ltr"',
+                                                           t(lab) if i18n else html.escape(lab))
+            return '<div class="fld"><label for="%s" data-i18n="%s">%s</label><select id="%s">%s</select></div>' % (sid, key, t(key), sid, o)
+
+        def binopts(name):
+            return [(i, b[2], False) for i, b in enumerate(bins[name])]
+        filters = "".join([
+            sel("mxCat", "mx_cat", [(c, "mx_c_" + c, True) for c in D["categories"]]),
+            sel("mxPack", "mx_pack", [(p_, "mx_p_" + p_, True) for p_ in D["packaging"]]),
+            sel("mxFeeder", "mx_feeder", [(f["id"], "mx_fo_" + f["id"], True) for f in D["feeders"]]),
+            sel("mxPitch", "mx_pitch", binopts("pitch")),
+            sel("mxL", "mx_L", binopts("size")), sel("mxW", "mx_W", binopts("size")), sel("mxH", "mx_H", binopts("size")),
+            sel("mxLeads", "mx_leads", binopts("leads")), sel("mxLd", "mx_ld", binopts("ld")),
+        ])
+        cols = "".join('<th scope="col" data-i18n="mx_col_%s">%s</th>' % (c, t("mx_col_" + c))
+                       for c in ("comp", "cat", "pack", "body", "pitch", "leads", "ld", "feeder", "nozzle", "status"))
+        legend = "".join('<span class="mx-st mx-s-%s" data-i18n="mx_s_%s">%s</span>' % (s_, s_, t("mx_s_" + s_)) for s_ in D.get("statuses", []))
+        chk = ""
+        if m.get("check_part", True):
+            num = lambda i, k: '<div class="fld"><label for="%s" data-i18n="%s">%s</label><input id="%s" type="number" min="0" step="any" inputmode="decimal"></div>' % (i, k, t(k), i)
+            chk = '''
+<div class="mx-check" id="mxCheck">
+  <h3 data-i18n="mx_chk_h">%s</h3><p data-i18n="mx_chk_p">%s</p>
+  <div class="mx-cgrid">%s%s%s%s%s%s</div>
+  <div class="mx-cout" id="mxChkOut" aria-live="polite"></div>
+</div>''' % (t("mx_chk_h"), t("mx_chk_p"),
+             sel("mxCPack", "mx_pack", [(p_, "mx_p_" + p_, True) for p_ in D["packaging"]]),
+             num("mxCL", "mx_cL"), num("mxCW", "mx_cW"), num("mxCH", "mx_cH"), num("mxCWt", "mx_cWt"), num("mxCLd", "mx_cLd"))
+        for k in self.mx_keys():
+            self.t(k)  # existence check + mark used
+        data = json.dumps(D, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+        return '''<section id="matcher"%s><div class="wrap">%s
+<div class="mx" id="mx">
+  <div class="mx-filters">
+    <div class="fld mx-q"><label for="mxQ" data-i18n="mx_search">%s</label><input id="mxQ" type="search" autocomplete="off" placeholder="%s" data-i18n-ph="mx_search_ph"></div>
+    %s
+    <label class="mx-unk"><input type="checkbox" id="mxUnk" checked> <span data-i18n="mx_unknown">%s</span></label>
+    <button type="button" class="btn btn-o mx-reset" id="mxReset" data-i18n="mx_reset">%s</button>
+  </div>
+  <div class="mx-bar"><b id="mxCount" aria-live="polite"></b><span class="mx-legend">%s</span></div>
+  <div class="mx-tw"><table class="mx-table"><thead><tr>%s</tr></thead><tbody id="mxBody"></tbody></table></div>
+  <p class="mx-empty" id="mxEmpty" hidden data-i18n="mx_empty">%s</p>
+  <p class="qual" data-i18n="mx_note">%s</p>
+</div>%s
+</div></section>
+<div class="modal" id="mxModal" role="dialog" aria-modal="true" aria-label="%s" data-i18n-aria="mx_d_title"><div class="inner mx-detail"><button type="button" class="cl" id="mxClose" aria-label="%s" data-i18n-aria="aria_close">✕</button><div id="mxDetail"></div></div></div>
+<script type="application/json" id="matcherData">%s</script>''' % (
+            self.sec_class("matcher"), self.head2("mx_kick", "mx_h2", "mx_lead"), t("mx_search"), t("mx_search_ph"), filters,
+            t("mx_unknown"), t("mx_reset"), legend, cols, t("mx_empty"), t("mx_note"), chk, t("mx_d_title"), t("aria_close"), data)
+
+    # ------------------------------------------------------------ optional: NPI / selection stepper with checklists (since 1.1.0)
+    def s_npi(self):
+        t, n = self.t, self.cfg["npi"]
+        steps = n["steps"]
+        checks = n.get("checks", [3] * steps)
+        tabs = "".join('<li><button type="button" role="tab" class="npi-tab%s" id="npiT%d" aria-controls="npiP%d" aria-selected="%s"><span class="npi-n" dir="ltr">%d</span><span data-i18n="n%dt">%s</span></button></li>'
+                       % (" on" if i == 1 else "", i, i, "true" if i == 1 else "false", i, i, t("n%dt" % i)) for i in range(1, steps + 1))
+        panes = ""
+        for i in range(1, steps + 1):
+            cl = "".join('<li><label><input type="checkbox" class="npi-cb"> <span data-i18n="n%dc%d">%s</span></label></li>' % (i, j, t("n%dc%d" % (i, j)))
+                         for j in range(1, checks[i - 1] + 1))
+            nav = '<div class="npi-nav">%s%s</div>' % (
+                '<button type="button" class="btn btn-o npi-prev" data-i18n="npi_prev">%s</button>' % t("npi_prev") if i > 1 else "<span></span>",
+                '<button type="button" class="btn btn-p npi-next" data-i18n="npi_next">%s</button>' % t("npi_next") if i < steps else
+                '<a class="btn btn-p" href="#contact" data-i18n="npi_cta">%s</a>' % t("npi_cta"))
+            panes += '<div class="npi-pane%s" role="tabpanel" id="npiP%d" aria-labelledby="npiT%d"%s><span class="npi-k" dir="ltr">%d / %d</span><h3 data-i18n="n%dt">%s</h3><p data-i18n="n%dd">%s</p><ul class="npi-check">%s</ul>%s</div>' % (
+                " on" if i == 1 else "", i, i, "" if i == 1 else " hidden", i, steps, i, t("n%dt" % i), i, t("n%dd" % i), cl, nav)
+        return '''<section id="npi"%s><div class="wrap">%s
+<div class="npi" id="npiBox">
+  <ol class="npi-tabs" role="tablist">%s</ol>
+  <div class="npi-body">%s
+    <div class="npi-prog"><div class="npi-bar"><i id="npiBar"></i></div><span id="npiProg" dir="auto"></span></div>
+  </div>
+</div>
+</div></section>''' % (self.sec_class("npi"), self.head2("npi_kick", "npi_h2", "npi_lead"), tabs, panes)
 
     def s_fab(self):
         t, n = self.t, self.cfg["fab"]["count"]
@@ -439,6 +556,12 @@ class Page:
     def fill(self, o):
         """Substitute {{canonical}}, {{t:key}} and {{steps}} inside JSON-LD templates."""
         if isinstance(o, str):
+            if o == "{{npi_steps}}":
+                n = self.cfg["npi"]
+                return [{"@type": "HowToStep", "position": i, "name": self.EN["n%dt" % i], "text": self.EN["n%dd" % i],
+                         "itemListElement": [{"@type": "HowToDirection", "text": self.EN["n%dc%d" % (i, j)]}
+                                             for j in range(1, n.get("checks", [3] * n["steps"])[i - 1] + 1)]}
+                        for i in range(1, n["steps"] + 1)]
             if o == "{{steps}}":
                 return [{"@type": "HowToStep", "position": i, "name": self.EN["s%dt" % i], "text": self.EN["s%dd" % i]} for i in range(1, self.cfg["how"]["steps"] + 1)]
             o = o.replace("{{canonical}}", self.canon).replace("{{org}}", self.b["org_id"])
@@ -492,6 +615,18 @@ class Page:
                     "embedUrl": "https://www.youtube-nocookie.com/embed/%s" % it["id"], "url": "https://www.youtube.com/watch?v=%s" % it["id"],
                     "duration": dur, "publisher": {"@id": b["org_id"]}}})
             graph.append(vids)
+        if "matcher" in self.secs and self.cfg.get("matcher", {}).get("jsonld_itemlist", True):
+            D = self.mx_data()
+            graph.append({"@type": "ItemList", "name": J.get("matcher_list_name", "Feeder models in the quick-match table"),
+                          "numberOfItems": len(D["feeders"]), "itemListElement": [
+                {"@type": "ListItem", "position": i, "item": {
+                    "@type": "Product", "@id": CANON + "#feeder-" + f["id"], "name": ("%s %s" % (f["model"], EN["mx_f_%sn" % f["id"]])).strip(),
+                    "description": EN["mx_f_%sd" % f["id"]], "model": f.get("model") or None,
+                    "brand": {"@type": "Brand", "name": b["name"]} if f.get("own", True) else None,
+                    "manufacturer": {"@id": b["org_id"]} if f.get("own", True) else None,
+                    "image": f.get("image"), "url": f.get("url")}} for i, f in enumerate(D["feeders"], 1)]})
+            for it in graph[-1]["itemListElement"]:
+                it["item"] = {k: v for k, v in it["item"].items() if v is not None}
         if J.get("terms"):
             graph.append(J["terms"])
         return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, indent=1).replace("</", "<\\/")
@@ -567,7 +702,7 @@ window.chatwootSettings = %s;
                     continue
                 if k not in self.EN:
                     probs.append("%s.json has key %r that en.json lacks" % (l, k))
-        heading_keys = [k for k in self.used if re.match(r"^(seo_title|og_title|hero_h1[ab]|.*_h2|w\d+t|s\d+t|fab\d+n|mc\d+t|b\d+t|q\d+t|sv\d+t|calc_t|fit_h|dk\d+t)$", k)]
+        heading_keys = [k for k in self.used if re.match(r"^(seo_title|og_title|hero_h1[ab]|.*_h2|w\d+t|s\d+t|n\d+t|fab\d+n|mc\d+t|b\d+t|q\d+t|sv\d+t|calc_t|fit_h|mx_chk_h|dk\d+t)$", k)]
         for l in self.langs:
             for k in heading_keys:
                 v = self.I[l].get(k)
@@ -602,6 +737,25 @@ window.chatwootSettings = %s;
                     v = v.get(p_, []) if isinstance(v, dict) else v
                 if not v:
                     probs.append("section %r is listed but product.json has no %s: fill it or drop the section" % (sec, ".".join(path)))
+        if "matcher" in self.secs:
+            D = self.mx_data()
+            fids = {f["id"] for f in D["feeders"]}
+            for r in D["rows"]:
+                for fk in ("feeder", "alt"):
+                    if r.get(fk) and r[fk] not in fids:
+                        probs.append("matcher row %s: unknown %s %r" % (r.get("id"), fk, r[fk]))
+                for fk, allowed in (("cat", D["categories"]), ("pack", D["packaging"]), ("nozzle", D.get("nozzles", [])),
+                                    ("status", D.get("statuses", [])), ("src", D.get("sources", []))):
+                    if r.get(fk) and r[fk] not in allowed:
+                        probs.append("matcher row %s: %s %r is not declared" % (r.get("id"), fk, r[fk]))
+            for l in self.langs:
+                for k in self.mx_keys():
+                    v = self.I[l].get(k)
+                    if v and re.match(r"^mx_", str(v)):
+                        probs.append("matcher key %s in %s looks untranslated (%r)" % (k, l, v))
+            for k in self.mx_keys():
+                if k not in self.EN:
+                    probs.append("matcher needs i18n key %r in en.json" % k)
         if not self.cfg.get("seo", {}).get("og_image"):
             probs.append("seo.og_image is empty")
         for term in self.cfg.get("verify", {}).get("forbidden_terms", []):
@@ -626,7 +780,7 @@ window.chatwootSettings = %s;
             I18N[l] = d
         calc = self.cfg.get("calc") if "calc" in self.secs else None
         CFG = {"langs": self.langs, "storage": self.cfg.get("storage_prefix", re.sub(r"\W", "_", self.filename[:24])),
-               "email": self.b["email"], "themeLight": self.b["theme_color_light"], "themeDark": self.b["theme_color_dark"],
+               "email": self.b["email"], "whatsapp": self.b["whatsapp"], "themeLight": self.b["theme_color_light"], "themeDark": self.b["theme_color_dark"],
                "calc": {"inputs": [f["id"] for f in calc["inputs"]], "vars": calc.get("vars", []),
                         "outputs": [{"id": o["id"], "expr": o["expr"], "decimals": o.get("decimals", 0)} for o in calc["outputs"]]} if calc else None}
         js = open(os.path.join(TPL, "runtime.js"), encoding="utf-8").read()

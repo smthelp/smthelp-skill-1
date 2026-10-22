@@ -1,16 +1,16 @@
 ---
 name: smt-source-to-landing-page
-description: 根据「产品源素材（PDF/1688/淘宝/产品 URL/图片）+ 主题」生成 Southern Machinery 品牌的营销型单文件 HTML 产品 Landing Page：FAB 文案、8 篇 Dan Koe 六步法博客、7 语言（含阿拉伯语 RTL）、暗黑/明亮主题、SEO+GEO、Chatwoot 客服、Playwright 验收，并推送到 smthelping/smt-product-landing-html。参数化构建：新产品只写 product.json + i18n + blogs，不改代码。Use when user gives product source files or links plus a theme and asks for 产品落地页 / Landing Page / 单HTML / 营销页 / 产品页 / product landing page.
-version: 1.0.0
+description: 根据「产品源素材（PDF/1688/淘宝/产品 URL/图片）+ 主题」生成 Southern Machinery 品牌的营销型单文件 HTML 产品 Landing Page：FAB 文案、可选的交互式「元件→供料器/吸嘴」快速匹配表（matcher）与 NPI 步骤器、8 篇六步法博客（页面任何标题禁止出现 Dan Koe 及六步名称）、7 语言（含阿拉伯语 RTL）、暗黑/明亮主题、SEO+GEO、Chatwoot 客服、Playwright 验收，并推送到 smthelping/smt-product-landing-html。参数化构建：新产品只写 product.json + i18n + blogs，不改代码。Use when user gives product source files or links plus a theme and asks for 产品落地页 / Landing Page / 单HTML / 营销页 / 产品页 / product landing page.
+version: 1.1.0
 ---
 
 # SMT Source → Landing Page（源素材到单文件落地页）
 
 把 2026-10-13「AI 立式接料带」项目的完整做法固化为可复现流水线。
 母技能 `../smt-product-landing-page/`（v1.6.0）沉淀了 1688 爬取、WebDAV、3D 动画等经验，本技能在其设计系统上做了**参数化**：
-`product.json + i18n/*.json + blogs.json → scripts/build.py → 单 HTML → scripts/verify.py（34 项检查）→ scripts/publish.py`。
+`product.json + i18n/*.json + blogs.json (+ matcher.json) → scripts/build.py → 单 HTML → scripts/verify.py（基础 34 项；启用 matcher + npi 时 47 项）→ scripts/publish.py`。
 
-参考实现：`examples/radial-splice-tape/`（重建即得已发布页面，也是回归测试夹具）。
+参考实现：`examples/radial-splice-tape/`（重建即得已发布页面，也是回归测试夹具）。matcher/npi 的参考实现：`smthelping/smt-product-landing-html` 的 `feeders-nozzles/odd-form-insertion-customized-feeder-nozzle-catalog-v03-component-matcher-southern-machinery.html`（2026-10-22）。
 
 ## 触发条件
 
@@ -68,8 +68,25 @@ python3 scripts/extract_sources.py <pdf或文件夹...> --out work/<slug>/src
 ### 4. FAB 文案（i18n/en.json）
 按 `references/copy-standards.md`：6 痛点卡 → 4 步 how → 6 组 F/A/B → 型号卡 + 适配表 → 规格表（每行证据标签 v/c/t）→ disclosure → 10 FAQ → 5 步服务。数字优先、无价格、询盘导向。先 `python3 scripts/scaffold.py work/<slug>/product --filename <seo>.html --line <line>` 生成骨架，再**整份重写** en.json（scaffold 保留的是接料带文本，build `--check` 会拦截残留）。
 
+### 4b. 可选：元件→供料器快速匹配表（section `matcher`，1.1.0 起）
+适用：需要「元件类型 → 供料器型号/吸嘴」查表的页面（供料器、吸嘴、编带、插件机配套）。组件完全由配置驱动，代码不改：
+- `product.json`：`"matcher": {"data": "matcher.json", "check_part": true, "jsonld_itemlist": true}`，并把 `"matcher"` 放进 `sections` 与 `nav`
+- `matcher.json`（产品文件夹内，建议用脚本生成，见示例 `tools/make_matcher.py` 的写法）：
+  - `categories` / `packaging` / `nozzles` / `statuses` / `sources`：代码表，显示文字全部来自 i18n：`mx_c_<cat>`、`mx_p_<pack>`、`mx_n_<nozzle>`、`mx_s_<status>`、`mx_src_<src>`
+  - `feeders[]`：`id, model, page, pack[], env{L,W,H,wt,ld:[min,max]}, envtxt, image?, url?, own?`；文字 `mx_f_<id>n`（名称）、`mx_f_<id>d`（说明）、`mx_fo_<id>`（筛选下拉项）。`own:false` 表示非本公司型号（如主机自带载带供料器），JSON-LD 不挂品牌
+  - `bins`：`pitch / size / leads / ld` 区间 `[lo, hi, "标签"]`，判定 `lo < v ≤ hi`
+  - `rows[]`：`id, type, spec, cat, pack, L, W, H, OH, pitch, leads, ld, feeder, alt, nozzle, status, note, src`；类型文字 `mx_t_<type>`，备注 `mx_note_<note>`。L ≥ W 为占地尺寸，H 为本体高，OH 为总高；源里没有的值**留空不编**（筛选时由「包含无数据行」复选框决定去留）
+- UI 文案 key：`mx_kick/h2/lead/search/search_ph/cat/pack/feeder/pitch/L/W/H/leads/ld/any/unknown/unknown_v/reset/count({n},{total})/empty/note`、`mx_col_*`（10 列）、`mx_d_*`（详情）、`mx_ask_wa/mail/msg/subj`、`mx_chk_*` 与 `mx_cL/cW/cH/cWt/cLd`（自查框）。build `--check` 会列出缺失 key、未声明代码、未知 feeder
+- 行为：文本搜索（当前语言 + 英文）、9 个筛选、结果计数、重置、空结果提示；行点击/回车打开详情（供料器说明、目录页码、备注、来源）+ WhatsApp/邮件按钮，消息预填元件规格；自查框按目录 envelope 比对；≤760 px 表格变卡片；切语言整表重渲染；数据以 `<script type="application/json" id="matcherData">` 内嵌
+- 状态约定：`fit` 来源评估通过且在目录范围内；`custom` 来源评估要求定制；`tbc` 超出目录范围或有条件；`fam` 只按包装归族（源无尺寸）。未知映射一律写 To be confirmed
+- 红线：客户名、料号、供应商、价格不进 matcher.json；来源用匿名代号（evaluation A/B…）。product.json 的 `verify.forbidden_terms` 可列客户名做扫描，但这类名单只留在 work/，不进 skill 仓库
+- 完整示例：`examples/odd-form-feeder-matcher/`（product 文件夹 + `tools/make_matcher.py`、`en_src.py`、`blogs_src.py`，脚本输出到示例文件夹本身）；`python3 scripts/build.py examples/odd-form-feeder-matcher --out /tmp/x` 即可重建 2026-10-22 发布页
+
+### 4c. 可选：NPI / 选型步骤器（section `npi`，1.1.0 起）
+`"npi": {"steps": 5, "checks": [3,3,3,3,3]}`；key：`npi_kick/h2/lead/prev/next/cta/prog({d},{n})`、`n{i}t`、`n{i}d`、`n{i}c{j}`。左侧步骤 tab（键盘方向键、RTL 反向）、右侧说明 + 勾选清单 + 进度条，最后一步按钮跳 `#contact`。`jsonld.howto.step` 写 `"{{npi_steps}}"` 自动生成 HowToStep（含 HowToDirection）。hero 第二个按钮可用 `hero.cta2_href` 指向 `#matcher`。
+
 ### 5. 八篇博客（blogs.json）
-Dan Koe 六步内容法：Hook → Diagnosis → Framework → Vehicle → Loop → CTA，每篇 4-6 个小标题、350-600 词。**任何语言的任何标题都不得出现** hook / diagnosis / framework / vehicle / loop / CTA 及其译词（清单在 copy-standards.md，代码在 build.py `BANNED`）。标题和摘要写进 en.json `b{N}t` / `b{N}s`。
+六步内容法（方法论出自 Dan Koe）：Hook → Diagnosis → Framework → Vehicle → Loop → CTA，每篇 4-6 个小标题、350-600 词。**任何语言的任何标题（含博客小标题、视频标题 h3）都不得出现** "Dan Koe"、hook / diagnosis / framework / vehicle / loop / CTA 及其译词（清单在 copy-standards.md，代码在 build.py `BANNED`；"dan koe" 自 1.1.0 起在清单内）。页面正文也不要写方法论作者名。标题和摘要写进 en.json `b{N}t` / `b{N}s`。注意视频标题也是 h3：YouTube 原标题含 "Vehicle" 等词会触发禁用词检查 → 换一个视频。
 
 ### 6. SEO + GEO
 按 `references/seo-geo-checklist.md`：SEO 文件名（由原文件名/主题关键词英译）、title ≤70、description 140-200、canonical `https://www.smthelp.com/<filename>`、hreflang ×7 + x-default、OG/Twitter；JSON-LD 由 build 自动生成 Organization / WebPage / Breadcrumb / FAQPage / BlogPosting 列表 / VideoObject 列表，product.json 只补 `jsonld.products`、`howto`、`terms`（DefinedTermSet）、`breadcrumb`。GEO：summary 可引用总结 + 6 条实体事实、FAQ 首句直答、术语定义。
@@ -87,7 +104,7 @@ en 定稿 → 翻译 es、pt、fr、ar（RTL）、ru、zh（`references/i18n-gui
 python3 scripts/build.py work/<slug>/product --out work/<slug>/dist        # 有 WARN 必须修
 python3 scripts/verify.py work/<slug>/dist/<file>.html --config work/<slug>/product --shots work/<slug>/shots
 ```
-verify 34 项全 PASS 才继续（清单见 output-spec.md）。然后**用 read_file 看至少 3 张截图**：`light_top.png`、`ar_middle.png`、`mobile_ar_top.png`（再加 `dark_middle.png`、`sec_gallery.png` 更好），查：文字溢出、对比度、RTL 镜像、图片水印、空白区。verify 单次约 90 秒；shell 有 120 秒上限时用 `nohup … &` 再读日志。
+verify 全 PASS 才继续（基础 34 项；matcher 加 12 项：行数、包装筛选减少行数、组合筛选与计数一致、重置、搜索、空状态、详情询盘链接、关闭、自查框、标签全语言已译、390 px 卡片无溢出 en+ar；npi 加 1 项；有 npi 时 JSON-LD 必须含 HowTo。清单见 output-spec.md）。然后**用 read_file 看至少 3 张截图**：`light_top.png`、`ar_middle.png`、`mobile_ar_top.png`（再加 `dark_middle.png`、`sec_gallery.png` 更好；有 matcher 时加看 `light_matcher.png`、`mobile_en_matcher.png`、`ar_matcher.png`），查：文字溢出、对比度、RTL 镜像、图片水印、空白区。verify 单次约 90 秒；shell 有 120 秒上限时用 `nohup … &` 再读日志。
 
 ### 10. 保存与推送
 ```bash
@@ -119,7 +136,12 @@ python3 scripts/publish.py github work/<slug>/dist/<file>.html --line <product-l
 9. **Chatwoot 用户原稿是 http**：一律改 https，否则 https 页面被拦
 10. **空 `src=""`** 会被浏览器请求成当前页 → lightbox/iframe 占位不写 src（runtime 已按需赋值）
 11. **Python `%` 格式化与 URL 里的 `%20`** 冲突 → URL 只作参数传入模板，不要拼进格式串
-12. **shell 120 秒上限**：verify 约 90 秒，大页面可能超时 → `nohup python3 scripts/verify.py … > log 2>&1 &` 后 sleep 再读
+12. **shell 120 秒上限**：verify 约 90 秒，大页面可能超时 → `nohup python3 scripts/verify.py … > log 2>&1 &` 后 sleep 再读；别在上一次还没跑完时再起一次（两个进程写同一日志）
+13. **base.css 的 `table{min-width:640px}`**：新表格组件在手机上被撑出横滚 → 组件 CSS 里显式 `min-width:0`（matcher 已处理）；10 列以上的桌面表头允许换行、压缩内边距，否则在 1180 px 容器里右侧列被截
+14. **视频标题是 h3**：原标题里的 "Vehicle"、"Loop" 等会触发禁用词检查，换视频而不是改标题
+15. **计算器输出为 0 时显示 "—"**，verify 的 calc 检查会 FAIL；不要放默认值为 0 的金额输入（也避免暗示价格），只算工时
+16. **阿拉伯语混排括号**：「الجسم L × W × H (مم)」这类阿英混排 + 括号会被 bidi 打乱 → 阿语标签去掉括号（如「أبعاد الجسم بالمم L×W×H」）
+17. **临时 Playwright 截图卡在 load**：Chatwoot/YouTube 让 load 事件迟迟不来 → 自写脚本用 `wait_until="domcontentloaded"`（verify 已代取请求，不受影响）
 
 ## 升级维护方式
 
@@ -129,6 +151,6 @@ python3 scripts/publish.py github work/<slug>/dist/<file>.html --line <product-l
   - MAJOR `x.0.0`：config 结构不兼容（改 key 约定、改 sections 语义），需写迁移说明并升级 example
 - **CHANGELOG.md**：每次变更追加一条（日期、版本、改了什么、为什么、来自哪个项目）
 - **每个项目结束后**：在本项目的 NOTES.md 记「这次手工做了而 skill 没覆盖的事」→ 能参数化的进 build/verify/templates，经验进 Pitfalls，文案规律进 references；新的优秀页面可作为 `examples/<slug>/` 第二个夹具
-- **回归测试（必做）**：任何 scripts/ 或 templates/ 改动后跑 `bash scripts/regress.sh`：重建接料带示例 + verify 34 项全过 + 看截图，才允许 bump 版本和提交
+- **回归测试（必做）**：任何 scripts/ 或 templates/ 改动后跑 `bash scripts/regress.sh`：重建接料带示例（不含 matcher，验证新可选组件不影响旧配置）+ verify 34 项全过 + 看截图，才允许 bump 版本和提交
 - **同步**：提交到 `smthelp/smthelp-skill-1` 后，QwenWork 端运行仓库根目录 `./sync-skills.sh`（只同步单个 skill 子目录）；Hark 端用 skill create 重新导入 SKILL.md（同名覆盖）
 - 母技能 `smt-product-landing-page` 保持不动；两者共用品牌资产，品牌信息变更时两边一起改

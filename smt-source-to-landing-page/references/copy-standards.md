@@ -34,7 +34,7 @@
 
 ### 禁用词（标题中，全部语言；build.py `BANNED` 与 verify.py 同源）
 
-- en：hook, diagnosis/diagnose, framework, vehicle, loop, CTA, call to action
+- en：hook, diagnosis/diagnose, framework, vehicle, loop, CTA, call to action, Dan Koe（1.1.0 起；方法论作者名不出现在页面任何标题，正文也不写）
 - es：gancho, diagnóstico, marco de trabajo, vehículo, bucle, llamada a la acción
 - pt：gancho, diagnóstico, estrutura de trabalho, veículo, loop, chamada para/à ação
 - fr：accroche, hameçon, diagnostic, framework, véhicule, boucle, appel à l'action

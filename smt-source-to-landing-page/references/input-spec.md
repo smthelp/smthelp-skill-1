@@ -58,3 +58,12 @@
 - **供应商名、店铺名、他牌水印永不出现**（如 DHR、ESOCOO、Southern Electronics、GIANNG 水印）；用图前逐张目检
 - alicdn / 淘宝图片不外链（防盗链 403 且暴露货源）：裁切避开水印后 base64 内嵌或上传自有图床
 - 来源之间数字冲突 → 进 disclosure 表，各自标来源，不擅自取舍；拿不准的标 `To be confirmed`
+
+
+## 7. 可选：快速匹配表的数据来源（1.1.0 起）
+
+matcher 的行来自用户给的 Excel/BOM/评估表 + 目录。先用 `scripts/extract_sources.py` 或 openpyxl 把每张表导成文本，再写一个小脚本（放 `work/<slug>/tools/`）生成 `product/matcher.json`：
+- 一张来源表一个匿名代号（bomA、bomB…），代号的说明写进 `mx_src_<code>`，不写客户名
+- 包装代码统一（granel/bandeja/fitado/rolo → bulk/tray/radial_tape/tape 等）
+- 只录来源里有的数字；描述里的 P= 值与表格列冲突时取描述，并在 disclosure 与 `mx_note_*` 里说明
+- 目录给的每个供料器 envelope 写进 `feeders[].env`，超出即标 `tbc`

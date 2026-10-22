@@ -188,10 +188,60 @@ with sync_playwright() as p:
         check("blog_count", n_posts == want_posts, "%d posts (want %d)" % (n_posts, want_posts))
         pg.evaluate("document.getElementById('article-1').open=true")
         check("blog_expand", pg.evaluate("document.querySelector('#article-1 .art:not([hidden])').offsetHeight>200"))
+    if has("#matcherData"):
+        # optional quick-match table (since 1.1.0): filters narrow the rows, reset restores them, search, detail + inquiry links
+        pg.evaluate("document.getElementById('matcher').scrollIntoView()")
+        rows = lambda: pg.evaluate("document.querySelectorAll('#mxBody tr').length")
+        total = pg.evaluate("JSON.parse(document.getElementById('matcherData').textContent).rows.length")
+        check("matcher_rows_rendered", rows() == total and total > 0, "%d rendered / %d in data" % (rows(), total))
+        packs = pg.evaluate("[...document.querySelectorAll('#mxPack option')].map(o=>o.value).filter(Boolean)")
+        counts = {}
+        for pk in packs:
+            pg.select_option("#mxPack", pk); counts[pk] = rows()
+        pg.select_option("#mxPack", "")
+        narrowed = [k for k, v in counts.items() if 0 < v < total]
+        check("matcher_filter_reduces", bool(narrowed), counts)
+        pg.select_option("#mxCat", index=1); n_cat = rows()
+        pg.select_option("#mxPitch", index=2); n_both = rows()
+        cnt = pg.evaluate("document.getElementById('mxCount').textContent")
+        check("matcher_filters_combine", n_both <= n_cat < total and str(n_both) in cnt, {"cat": n_cat, "cat+pitch": n_both, "count_text": cnt})
+        pg.click("#mxReset"); pg.wait_for_timeout(150)
+        check("matcher_reset", rows() == total and pg.evaluate("document.getElementById('mxCat').value===''"), rows())
+        first_word = pg.evaluate("(document.querySelector('#mxBody tr td b')||{}).textContent||''").split(" ")[0]
+        pg.fill("#mxQ", first_word); pg.wait_for_timeout(150)
+        c = rows()
+        check("matcher_search", 0 < c <= total, {"q": first_word, "rows": c})
+        pg.fill("#mxQ", "zzzqqqxx"); pg.wait_for_timeout(100)
+        check("matcher_empty_state", rows() == 0 and pg.evaluate("!document.getElementById('mxEmpty').hidden"))
+        pg.click("#mxReset")
+        pg.click("#mxBody tr >> nth=0"); pg.wait_for_timeout(300)
+        det = pg.evaluate("""(()=>{const m=document.getElementById('mxModal');const w=document.getElementById('mxWa');const e=document.getElementById('mxMail');
+            return {open:m.classList.contains('open'),wa:w?w.href:'',mail:e?e.href:'',txt:document.getElementById('mxDetail').textContent.length}})()""")
+        check("matcher_detail_inquiry", det["open"] and "wa.me" in det["wa"] and "text=" in det["wa"] and det["mail"].startswith("mailto:") and det["txt"] > 80,
+              {k: (v[:90] if isinstance(v, str) else v) for k, v in det.items()})
+        pg.keyboard.press("Escape")
+        check("matcher_detail_close", pg.evaluate("!document.getElementById('mxModal').classList.contains('open')"))
+        if has("#mxCheck"):
+            pg.fill("#mxCL", "12"); pg.fill("#mxCW", "8"); pg.fill("#mxCH", "10"); pg.wait_for_timeout(150)
+            check("matcher_check_part", pg.evaluate("document.getElementById('mxChkOut').textContent.trim().length>10"))
+            for i in ("#mxCL", "#mxCW", "#mxCH"):
+                pg.fill(i, "")
+        R["matcher"] = {"rows": total, "per_packaging": counts}
+    if has("#npiBox"):
+        pg.evaluate("document.getElementById('npi').scrollIntoView()")
+        n = pg.evaluate("document.querySelectorAll('.npi-tab').length")
+        pg.click("#npiT%d" % n); pg.wait_for_timeout(150)
+        ok1 = pg.evaluate("!document.getElementById('npiP%d').hidden && document.getElementById('npiP1').hidden" % n)
+        pg.click("#npiT1"); before = pg.evaluate("document.getElementById('npiProg').textContent")
+        pg.click("#npiP1 .npi-cb >> nth=0"); after = pg.evaluate("document.getElementById('npiProg').textContent")
+        pg.click("#npiP1 .npi-next"); ok2 = pg.evaluate("!document.getElementById('npiP2').hidden")
+        check("npi_stepper", ok1 and ok2 and before != after, {"last_tab": ok1, "next": ok2, "progress": [before, after]})
     if has("#calc .cres b"):
         check("calc", pg.evaluate("[...document.querySelectorAll('#calc .cres b')].every(b=>b.textContent.trim() && b.textContent.trim()!=='\u2014')"))
     ld = pg.evaluate("""(()=>{try{return JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent)['@graph'].map(x=>x['@type'])}catch(e){return null}})()""")
     check("jsonld_parses", ld is not None, ld)
+    if has("#npiBox"):
+        NEED_TYPES.append("HowTo")
     check("jsonld_types", ld is not None and all(t in ld for t in NEED_TYPES), [t for t in NEED_TYPES if not ld or t not in ld])
     check("geo_summary_and_faq", has("#summary .sump") and has(".sfacts") and (not "faq" in sections or has(".fqs .ans")))
 
@@ -199,7 +249,7 @@ with sync_playwright() as p:
         pg.evaluate("document.documentElement.style.scrollBehavior='auto'")
         pg.evaluate("window.scrollTo(0,0)"); pg.wait_for_timeout(500)
         pg.screenshot(path="%s/%s_top.png" % (OUT, tag))
-        for sid, name in (("fab", "middle"), ("spec", "spec")):
+        for sid, name in (("fab", "middle"), ("spec", "spec"), ("matcher", "matcher"), ("npi", "npi")):
             if has("#" + sid):
                 pg.evaluate("document.getElementById('%s').scrollIntoView()" % sid); pg.wait_for_timeout(450)
                 pg.screenshot(path="%s/%s_%s.png" % (OUT, tag, name))
@@ -246,6 +296,12 @@ with sync_playwright() as p:
         heads = pg.evaluate(HEAD_JS)
         bad = sorted({w for x in heads for w in banned_hits(x)})
         fallback = pg.evaluate("""(()=>{const L=document.documentElement.lang; if(L==='en') return []; return Object.keys(I18N.en).filter(k=>!k.startsWith('__') && I18N[L][k]===undefined)})()""")
+        if pg.evaluate("!!document.getElementById('matcherData')"):
+            mxs = pg.evaluate("""(()=>({th:[...document.querySelectorAll('.mx-table thead th')].map(e=>e.textContent).join('|'),
+               raw:(document.getElementById('matcher').innerText.match(/\\bmx_[a-z0-9_]+/g)||[]).slice(0,5)}))()""")
+            langres.setdefault("_mx", {})[code] = mxs
+            if mxs["raw"]:
+                leaks = list(leaks) + mxs["raw"]
         ok = st["lang"] == code and st["dir"] == d and st["stored"] == code and (code == "en" or st["h1"] != en_h1)
         langres[code] = {"ok": ok, "state": st, "raw_key_leaks": leaks, "fallback_to_en_keys": fallback, "banned_in_headings": bad, "n_headings": len(heads)}
         if leaks:
@@ -256,6 +312,10 @@ with sync_playwright() as p:
             check("rtl_logo_right", pg.evaluate("(()=>{const r=document.querySelector('.brand img').getBoundingClientRect();return r.left>window.innerWidth/2})()"))
             shots("ar")
     R["languages"] = langres
+    mxl = langres.pop("_mx", None)
+    if mxl:
+        en_th = mxl.get("en", {}).get("th")
+        check("matcher_labels_translated", all(v["th"] != en_th for k, v in mxl.items() if k != "en"), {k: v["th"][:60] for k, v in mxl.items()})
     check("all_languages_persist", all(v["ok"] for v in langres.values()), {k: v["state"] for k, v in langres.items() if not v["ok"]})
     check("no_raw_keys_any_language", not leaks_all, leaks_all)
     check("no_brief_words_in_headings_any_language", not banned_all, banned_all)
@@ -274,6 +334,13 @@ with sync_playwright() as p:
         sw = mp.evaluate("document.documentElement.scrollWidth")
         wide = mp.evaluate("""[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.right>window.innerWidth+1||r.left<-1)&&!e.closest('.tw,.ftabs,.vchips,.langmenu,#lb,.modal,.heroimgs,[hidden]')}).slice(0,8).map(e=>e.tagName+'.'+e.className)""")
         check("mobile_390_no_hscroll_" + code, sw <= 391, {"scrollWidth": sw, "overflowing": wide})
+        if mp.evaluate("!!document.getElementById('matcherData')"):
+            mp.evaluate("document.documentElement.style.scrollBehavior='auto';document.getElementById('matcher').scrollIntoView()"); mp.wait_for_timeout(400)
+            mm = mp.evaluate("""(()=>{const s=document.getElementById('matcher');const tr=document.querySelector('#mxBody tr');
+               const over=[...s.querySelectorAll('*')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.right>window.innerWidth+1||r.left<-1)&&!e.closest('[hidden],.modal')}).slice(0,6).map(e=>e.tagName+'.'+e.className);
+               return {cards:tr?getComputedStyle(tr).display==='block':false, thead:getComputedStyle(document.querySelector('.mx-table thead')).display, over:over}})()""")
+            mp.screenshot(path="%s/mobile_%s_matcher.png" % (OUT, code))
+            check("matcher_mobile_cards_" + code, mm["cards"] and mm["thead"] == "none" and not mm["over"], mm)
         mctx.close()
     br.close()
 
