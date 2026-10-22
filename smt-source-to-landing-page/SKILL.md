@@ -110,7 +110,7 @@ verify 全 PASS 才继续（基础 34 项；matcher 加 12 项：行数、包装
 ```bash
 python3 scripts/publish.py github work/<slug>/dist/<file>.html --line <product-line> --title "<页面标题>" --push
 ```
-自动 clone/pull `smthelping/smt-product-landing-html`，复制到 `<line>/`，README 对应表格加/改一行并重算「N pages in M product lines」，commit + push。README 的产品段落说明（一段话）需手工补写。本地副本留在 `work/<slug>/dist/` 并复制到项目 `output/`。
+自动 clone/pull `smthelping/smt-product-landing-html`，复制到 `<line>/`，README 对应表格加/改一行并重算「N pages in M product lines」，commit + push。README 的产品段落说明（一段话）需手工补写。本地副本留在 `work/<slug>/dist/` 并复制到项目 `output/`。Hark 沙盒：git 命令的 shell 调用带 `credentials: [{"provider": "github"}]`；可先 `--dry-run`，补写 README 段落后再手动 commit + push。
 
 ### 11. 可选：WebDAV 发布
 仅当用户要求：`python3 scripts/publish.py webdav <file> [--dir "Product%20landing%20Page"]`。用户名 smtfile，**密码每次现问（getpass 或 SMFILE_PASS 环境变量），不入库、不写文件、不进日志**；发布后核对公网 200 与字节数，再对公网 URL 跑一次 verify。
@@ -118,7 +118,7 @@ python3 scripts/publish.py github work/<slug>/dist/<file>.html --line <product-l
 ## 输出规范
 
 详见 `references/output-spec.md`。要点：
-- **单 HTML**：head（meta/OG/hreflang/JSON-LD/内联 CSS）→ header（logo 左上、nav、主题、语言）→ main：hero · metrics · trust · summary · pain · how · fab · models · spec · disclosure · calc · gallery · videos · blog · docs · service · faq · family · contact → footer（社媒五件套、目录站、图床、视频墙、目录墙、邮箱、WhatsApp）→ 浮层 → runtime → Chatwoot。section 顺序与取舍由 `product.json.sections` 决定
+- **单 HTML**：head（meta/OG/hreflang/JSON-LD/内联 CSS）→ header（logo 左上、nav、主题、语言）→ main：hero · metrics · trust · summary · pain · how · matcher · npi · fab · models · spec · disclosure · calc · gallery · videos · blog · docs · service · faq · family · contact → footer（社媒五件套、目录站、图床、视频墙、目录墙、邮箱、WhatsApp）→ 浮层 → runtime → Chatwoot。section 顺序与取舍由 `product.json.sections` 决定
 - **响应式**：390 px 无横滚（en+ar），断点 1240/1040/760/640，RTL 镜像，reduced-motion 冻结动画，print 展开全部文章，file:// 双击可用，无 CDN 框架
 - **设计文案**：英文母版、数字优先、无价格、询盘导向、无他牌水印/供应商名、证据标签
 - **验收**：verify.py 全 PASS + 3 张以上截图目检 + GitHub 推送成功
@@ -126,7 +126,7 @@ python3 scripts/publish.py github work/<slug>/dist/<file>.html --line <product-l
 ## Pitfalls（踩过的坑）
 
 1. **Chatwoot 跨域打不开**：`chat.smthelp.com/widget` 返回 `X-Frame-Options: SAMEORIGIN`，在 file.autoinsertion.com、GitHub 等其他域名上气泡能出现但对话窗 iframe 被拒。页面代码无解，需在 Chatwoot 服务器/反代去掉 XFO 或改 `Content-Security-Policy: frame-ancestors` 白名单。verify 只能证明 sdk 已加载
-2. **沙盒会清掉 Playwright/Chromium**：重开会话后 `import playwright` 报错。`pip install playwright`；arm64 沙盒里 `playwright install chromium` 被 CDN 403 → `sudo apt-get install -y chromium`（verify 自动找 `/usr/bin/chromium`）。沙盒浏览器不能过代理认证 → verify 默认用 Python 代取所有请求（`--no-route` 关闭）
+2. **沙盒会清掉 Playwright/Chromium**：重开会话后 `import playwright` 报错。`pip install playwright`；arm64 沙盒里 `playwright install chromium` 被 CDN 403 → `sudo apt-get update && sudo apt-get install -y chromium`（不先 update 会报 Unable to locate package；verify 自动找 `/usr/bin/chromium`）。沙盒浏览器不能过代理认证 → verify 默认用 Python 代取所有请求（`--no-route` 关闭）
 3. **导航按钮 CSS 类名冲突**：base.css 里 nav 的「Get a quote」原用类 `.cta`，与联系区大块 `.cta`（渐变底、44px 内边距、两栏 grid）同名，导航按钮被撑成大色块 → 导航按钮改用专用类 `nav.mn a.navcta`（components.css 已含）；新组件起类名前先 grep base.css 查重
 4. **吸顶 header 遮挡锚点**：点导航后标题被 sticky header 盖住 → `section[id],[id^="article-"]{scroll-margin-top:84px}`（已含）；改 header 高度要同步改
 5. **YouTube uploadDate 拿不到**：Video Board 与 oEmbed 都不给上传日期 → VideoObject 不写 uploadDate，绝不编造（Google 会报"缺少推荐字段"，可接受）
@@ -152,5 +152,5 @@ python3 scripts/publish.py github work/<slug>/dist/<file>.html --line <product-l
 - **CHANGELOG.md**：每次变更追加一条（日期、版本、改了什么、为什么、来自哪个项目）
 - **每个项目结束后**：在本项目的 NOTES.md 记「这次手工做了而 skill 没覆盖的事」→ 能参数化的进 build/verify/templates，经验进 Pitfalls，文案规律进 references；新的优秀页面可作为 `examples/<slug>/` 第二个夹具
 - **回归测试（必做）**：任何 scripts/ 或 templates/ 改动后跑 `bash scripts/regress.sh`：重建接料带示例（不含 matcher，验证新可选组件不影响旧配置）+ verify 34 项全过 + 看截图，才允许 bump 版本和提交
-- **同步**：提交到 `smthelp/smthelp-skill-1` 后，QwenWork 端运行仓库根目录 `./sync-skills.sh`（只同步单个 skill 子目录）；Hark 端用 skill create 重新导入 SKILL.md（同名覆盖）
+- **同步**：提交到 `smthelp/smthelp-skill-1` 后，QwenWork 端运行仓库根目录 `./sync-skills.sh`（只同步单个 skill 子目录）；Hark 端用 skill create 重新导入 SKILL.md（同名覆盖，保留顶部 Hark 使用说明）
 - 母技能 `smt-product-landing-page` 保持不动；两者共用品牌资产，品牌信息变更时两边一起改
