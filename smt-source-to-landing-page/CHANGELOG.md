@@ -2,6 +2,17 @@
 
 格式：`## 版本 — 日期`，下面写改了什么、为什么、来自哪个项目。版本规则见 SKILL.md「升级维护方式」。
 
+## 1.1.0 (PATCH 示例内容) — 2026-10-23
+
+来源项目：Odd-form 插件供料器匹配页修订（Jason 的决定）。只改示例数据与文案，scripts/ 与 templates/ 未改，不升版本号。
+
+- `examples/odd-form-feeder-matcher/`：SBF2002（目录 V03 皮带供料器）与 S-MVF01（往复式皮带供料器，旧资料与视频）是**两个不同型号**、供不同元件：删除各处「是否同一型号待确认」（披露表 6→5 行、7 语言），matcher 新增 feeder `smvf01`（无 envelope，不编规格，链接其落地页），S-MVF01 评估模板的 4 行改挂 S-MVF01；FAQ 第 1 条、family 互链加 S-MVF01
+- 32 mm 载带元件「主机自带 32 mm 载带供料器 + Southern Machinery 吸嘴」改为已确认匹配（7 语言）；matcher 新增状态码 `conf`（Confirmed mapping，样式在示例 product.css 的 `.mx-s-conf`，无代码改动）。状态：fit 15 / conf 8 / custom 9 / tbc 10 / fam 34
+- 博客 2-8 篇扩写到 371-485 词（六步结构不变，标题无禁用词）
+- 新增 `tools/i18n_patch_20261023.py`（把本次改动的 key 写进 6 个译文文件，幂等）
+- 经验：新增 matcher 状态码只需 `statuses` + `mx_s_<code>`（7 语言）+ product.css 里一条 `.mx-s-<code>`；非目录型号的行不要用 `fit`（标签是「Fits catalog」）
+- 验收：示例重建与发布页逐字节一致；odd-form 页 verify 47/47；regress.sh 34/34
+
 ## 1.1.0 — 2026-10-22
 
 来源项目：Odd-form 插件供料器匹配页（Customized Feeder Nozzle Catalog V03，Jason 的需求：元件类型 → 供料器型号快速匹配、NPI 五步选型、Dan Koe 禁用）。

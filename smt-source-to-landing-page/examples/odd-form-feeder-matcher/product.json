@@ -161,7 +161,7 @@
   "ltr": []
  },
  "disclosure": {
-  "rows": 6
+  "rows": 5
  },
  "calc": {
   "inputs": [
@@ -540,6 +540,10 @@
   {
    "key": "fam2",
    "url": "sbf1001-vibratory-bowl-feeder-odd-form-auto-insertion-smart-ems.html"
+  },
+  {
+   "key": "fam6",
+   "url": "https://file.autoinsertion.com/public/Product%20landing%20Page/s-mvf01-reciprocating-belt-feeder-smart-ems-pcb-assembly.html"
   },
   {
    "key": "fam3",

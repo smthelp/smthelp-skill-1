@@ -7,7 +7,8 @@ Sources (all anonymised: no customer names, contacts, part numbers, supplier par
           component class identified by eye from the embedded photos) and its copy in "feeders_smt_help.xlsx" (JM_Study, 9 lines)
   bomC  = "feeders_smt_help.xlsx", sheet "Plan1" (35-line desktop board: description + packaging, no dimensions)
   bomD  = "Odd Form Insertion component list sample.xlsx" (6 lines: description, packaging, feeder type)
-  mvf   = Southern Machinery bulk-feeder qualification template (Components for MVF_SM.xlsx, 4 connectors, PW/PL/H/LH)
+  mvf   = S-MVF01 reciprocating belt feeder qualification template (Components for MVF_SM.xlsx, 4 connectors, PW/PL/H/LH).
+          S-MVF01 is a separate model from the Catalog V03 SBF2002 (Jason, 2026-10-23), so these rows name S-MVF01.
   cat   = Southern Machinery Customized Feeder Nozzle Catalog V03 (feeder envelopes, pages 2-12)
 Dimensions: L >= W is the footprint (mm), H = body height, OH = overall height (body + leads above board where the source gives it).
 """
@@ -32,6 +33,8 @@ feeders = [
     dict(id="sbf2002", model="SBF2002", page=6, pack=["bulk"], env={"L": [3, 20], "W": [3, 20], "H": [3, 20]},
          envtxt="3×3×3 – 20×20×20 mm",
          url=CAT + "SBF2002%20Reciprocating%20Belt%20Feeder%20%20Southern%20Machinery%20Customized%20Feeder%20Nozzle%20Catalog%20V03.pdf"),
+    dict(id="smvf01", model="S-MVF01", pack=["bulk"],
+         url="https://file.autoinsertion.com/public/Product%20landing%20Page/s-mvf01-reciprocating-belt-feeder-smart-ems-pcb-assembly.html"),
     dict(id="stp1001", model="STP1001", page=9, pack=["tray"], env={"L": [3, 50], "W": [3, 50], "H": [3, 50]},
          envtxt="3×3×3 – 50×50×50 mm · 150×150 – 200×300 mm · ≤ 3 kg",
          url=CAT + "STP1001%20Tray%20Feeder%20%20Southern%20Machinery%20Customized%20Feeder%20Nozzle%20Catalog%20V03.pdf"),
@@ -74,20 +77,20 @@ row("A12", "ptc", "protection", "radial_tape", "srf1001", "bomA", "tbc", "PTC 50
 
 # ---- bomB: connector-heavy board, dimensions in the source; class identified from the embedded photos
 row("B01", "pin_header_dual", "connector", "bulk", "sbf2002", "bomB", "fit", "2-row, red housing", L=16, W=4, H=6, OH=8.5, nozzle="gripper", alt="sbf1001")
-row("B02", "audio_jack", "io", "tape", "host_tape", "bomB", "fit", "3.5 mm, green", L=17.63, W=11.8, H=11, OH=14, nozzle="vacuum", note="host_tape")
+row("B02", "audio_jack", "io", "tape", "host_tape", "bomB", "conf", "3.5 mm, green", L=17.63, W=11.8, H=11, OH=14, nozzle="vacuum", note="host_tape")
 row("B03", "pin_header_dual", "connector", "bulk", "sbf2002", "bomB", "fit", "2 × 3, black housing", L=6.55, W=5.65, H=5.65, OH=7.9, nozzle="gripper", alt="sbf1001")
 row("B04", "inductor", "magnetic", "bulk", "sbf2002", "bomB", "fit", "box body, 2 leads", L=10.41, W=6.55, H=9.9, OH=13.05, leads=2, nozzle="vacuum", alt="sbf1001", note="photo_id")
 row("B05", "pin_header", "connector", "bulk", "sbf2002", "bomB", "fit", "1-row, yellow housing", L=15.78, W=4, H=6.4, OH=7.9, nozzle="gripper", alt="sbf1001")
 row("B06", "pin_header", "connector", "bulk", "sbf2002", "bomB", "fit", "1-row, black housing", L=10, W=4, H=5.85, OH=8.55, nozzle="gripper", alt="sbf1001")
 row("B07", "buzzer", "electromech", "bulk", "sbf2002", "bomB", "fit", "Ø11.84 mm", L=11.84, W=11.84, H=9.43, OH=13.1, leads=2, nozzle="vacuum", alt="sbf1001", note="buzzer_pack")
 row("B08", "pin_header", "connector", "bulk", "sbf2002", "bomB", "fit", "1-row, white housing", L=12, W=5.65, H=5.9, OH=8, nozzle="gripper", alt="sbf1001")
-row("B09", "audio_jack", "io", "tape", "host_tape", "bomB", "fit", "3.5 mm, black", L=16, W=12.45, H=6.55, OH=8.71, nozzle="vacuum", note="host_tape")
-row("B10", "led_indicator", "semiconductor", "tape", "host_tape", "bomB", "fit", "right-angle housing", L=12, W=4.26, H=9.26, OH=12, nozzle="gripper", note="host_tape")
+row("B09", "audio_jack", "io", "tape", "host_tape", "bomB", "conf", "3.5 mm, black", L=16, W=12.45, H=6.55, OH=8.71, nozzle="vacuum", note="host_tape")
+row("B10", "led_indicator", "semiconductor", "tape", "host_tape", "bomB", "conf", "right-angle housing", L=12, W=4.26, H=9.26, OH=12, nozzle="gripper", note="host_tape")
 row("B11", "sata", "io", "tray", "stp1001", "bomB", "custom", "7-pin vertical", L=16, W=6.4, H=8.9, OH=11.44, pitch=1.7, leads=7, nozzle="gripper", note="joined_desc")
 row("B12", "usb_stack", "io", "tray", "stp1001", "bomB", "custom", "USB 3.0, dual stacked", L=17.5, W=14.8, H=14.8, OH=18.7, nozzle="vacuum")
 row("B13", "wafer", "connector", "bulk", "sbf2002", "bomB", "fit", "4-pin, friction lock, red", L=10.24, W=5.78, H=9.6, OH=13.5, leads=4, nozzle="gripper", alt="sbf1001")
 row("B14", "wafer", "connector", "bulk", "sbf2002", "bomB", "fit", "4-pin, white", L=10.2, W=5.85, H=10.45, OH=13.5, leads=4, nozzle="gripper", alt="sbf1001")
-row("B15", "usb_a", "io", "tape", "host_tape", "bomB", "fit", "single port, low profile", L=14.5, W=14.4, H=5.8, OH=8.2, nozzle="vacuum", note="host_tape")
+row("B15", "usb_a", "io", "tape", "host_tape", "bomB", "conf", "single port, low profile", L=14.5, W=14.4, H=5.8, OH=8.2, nozzle="vacuum", note="host_tape")
 row("B16", "wafer", "connector", "bulk", "sbf2002", "bomB", "fit", "2-pin, white", L=5.86, W=5.13, H=10.2, OH=13.5, leads=2, nozzle="gripper", alt="sbf1001")
 row("B17", "power_header", "connector", "bulk", "sbf2002", "bomB", "fit", "2 × 2, black", L=8.75, W=6.65, H=9.3, OH=12.56, leads=4, nozzle="gripper", alt="sbf1001")
 row("B18", "power_header", "connector", "bulk", "sbf2002", "bomB", "tbc", "2 × 4, white", L=18.44, W=10.8, H=12.8, OH=16.22, leads=8, nozzle="gripper", alt="sbf1001", note="conditional")
@@ -128,11 +131,11 @@ row("D03", "trimmer", "electromech", "bulk", "sbf1001", "bomD", "fam", "0.1 W, 2
 row("D04", "pin_header", "connector", "bulk", "sbf1001", "bomD", "fam", "vertical, 4-pin, 2.5 mm", pitch=2.5, leads=4, alt="sbf2002", note="dims_needed")
 row("D05", "wafer", "connector", "bulk", "sbf1001", "bomD", "fam", "2-pin, 1 row, right-angle shrouded, 2.5 mm", pitch=2.5, leads=2, alt="sbf2002", note="dims_needed")
 
-# ---- mvf: bulk-feeder qualification template (Southern Machinery engineering judgment "OK"); H = overall incl. pins
-row("M01", "wire_header", "connector", "bulk", "sbf2002", "mvf", "fit", "4-circuit, 3.0 mm (.120 in)", L=12, W=6.6, OH=14.7, pitch=3.0, leads=4, nozzle="gripper", alt="sbf1001")
-row("M02", "pin_header", "connector", "bulk", "sbf2002", "mvf", "fit", "2-position, 2.54 mm (.1 in)", L=6.35, W=5, OH=14.22, pitch=2.54, leads=2, nozzle="gripper", alt="sbf1001")
-row("M03", "pin_header", "connector", "bulk", "sbf2002", "mvf", "fit", "3-pin, 3.96 mm (.156 in), vertical", L=7.62, W=6.35, OH=14.22, pitch=3.96, leads=3, nozzle="gripper", alt="sbf1001")
-row("M04", "pin_header", "connector", "bulk", "sbf2002", "mvf", "fit", "6-pin, 3.96 mm (.156 in), vertical", L=15, W=6.35, OH=14.22, pitch=3.96, leads=6, nozzle="gripper", alt="sbf1001")
+# ---- mvf: S-MVF01 qualification template (Southern Machinery engineering judgment "OK"); H = overall incl. pins
+row("M01", "wire_header", "connector", "bulk", "smvf01", "mvf", "conf", "4-circuit, 3.0 mm (.120 in)", L=12, W=6.6, OH=14.7, pitch=3.0, leads=4, nozzle="gripper", alt="sbf1001")
+row("M02", "pin_header", "connector", "bulk", "smvf01", "mvf", "conf", "2-position, 2.54 mm (.1 in)", L=6.35, W=5, OH=14.22, pitch=2.54, leads=2, nozzle="gripper", alt="sbf1001")
+row("M03", "pin_header", "connector", "bulk", "smvf01", "mvf", "conf", "3-pin, 3.96 mm (.156 in), vertical", L=7.62, W=6.35, OH=14.22, pitch=3.96, leads=3, nozzle="gripper", alt="sbf1001")
+row("M04", "pin_header", "connector", "bulk", "smvf01", "mvf", "conf", "6-pin, 3.96 mm (.156 in), vertical", L=15, W=6.35, OH=14.22, pitch=3.96, leads=6, nozzle="gripper", alt="sbf1001")
 
 # ---- cat: catalog reference examples (published material types; envelope only)
 row("K01", "reel_terminal", "terminal", "reel", "srt7001", "cat", "fit", "tab 6.35 × 0.81 mm, 10.21 mm above PCB", W=0.81, note="catalog_example")
@@ -150,7 +153,7 @@ D = {
     "categories": ["connector", "io", "capacitor", "protection", "magnetic", "electromech", "semiconductor", "socket", "passive", "terminal"],
     "packaging": ["bulk", "tube", "tray", "radial_tape", "axial_tape", "tape", "reel"],
     "nozzles": ["gripper", "vacuum", "axial", "tbc"],
-    "statuses": ["fit", "custom", "tbc", "fam"],
+    "statuses": ["fit", "conf", "custom", "tbc", "fam"],
     "sources": ["bomA", "bomB", "bomC", "bomD", "mvf", "cat"],
     "bins": {
         "pitch": [[0, 2.0, "≤ 2.0 mm"], [2.0, 2.6, "2.0 – 2.6 mm"], [2.6, 5.0, "2.6 – 5.0 mm"], [5.0, 10.0, "5.0 – 10 mm"], [10.0, 999, "> 10 mm"]],

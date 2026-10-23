@@ -54,7 +54,7 @@ E.update({
  "mx_L": "Body length L", "mx_W": "Body width W", "mx_H": "Height H", "mx_leads": "Lead count", "mx_ld": "Lead diameter",
  "mx_any": "Any", "mx_unknown": "Include rows where this value is not in the source", "mx_unknown_v": "n/a",
  "mx_reset": "Reset filters", "mx_count": "{n} of {total} component lines", "mx_empty": "No line matches these filters. Widen a range or send us the part: an empty result is exactly the case for a feasibility check.",
- "mx_note": "Mapping rules: packaging decides the feeder family; body size, pitch and lead diameter are checked against the Catalog V03 envelope of that model. 'Fits catalog' means the source evaluation passed and the part is inside the published envelope; it is not a guarantee for your exact part. Part numbers, customer names and suppliers are withheld.",
+ "mx_note": "Mapping rules: packaging decides the feeder family; body size, pitch and lead diameter are checked against the Catalog V03 envelope of that model. 'Fits catalog' means the source evaluation passed and the part is inside the published envelope; it is not a guarantee for your exact part. 'Confirmed mapping' is a confirmed pairing with a feeder outside Catalog V03: the host machine's own 32 mm tape feeder or the S-MVF01. Part numbers, customer names and suppliers are withheld.",
  "mx_col_comp": "Component", "mx_col_cat": "Category", "mx_col_pack": "Packaging", "mx_col_body": "Body L × W × H (mm)",
  "mx_col_pitch": "Pitch (mm)", "mx_col_leads": "Leads", "mx_col_ld": "Lead Ø (mm)", "mx_col_feeder": "Feeder", "mx_col_nozzle": "Nozzle / gripper", "mx_col_status": "Status",
  "mx_or": "or", "mx_d_title": "Component and feeder detail", "mx_d_spec": "Specification", "mx_d_body": "Body L × W × H (mm)", "mx_d_oh": "Overall height (mm)",
@@ -77,12 +77,12 @@ E.update({
  "mx_p_bulk": "Bulk (loose)", "mx_p_tube": "Tube / stick", "mx_p_tray": "Tray", "mx_p_radial_tape": "Radial tape (ammo / reel)",
  "mx_p_axial_tape": "Axial tape", "mx_p_tape": "Embossed tape on reel", "mx_p_reel": "Coil / reel (wire, terminal, solder, label)",
  "mx_n_gripper": "Gripper nozzle", "mx_n_vacuum": "Vacuum nozzle (custom tip)", "mx_n_axial": "Axial lead handling", "mx_n_tbc": "Chosen at sample test",
- "mx_s_fit": "Fits catalog", "mx_s_custom": "Customization", "mx_s_tbc": "To be confirmed", "mx_s_fam": "Family by packaging",
+ "mx_s_fit": "Fits catalog", "mx_s_conf": "Confirmed mapping", "mx_s_custom": "Customization", "mx_s_tbc": "To be confirmed", "mx_s_fam": "Family by packaging",
  "mx_src_bomA": "Odd-form evaluation A: power-supply board, 12 radial and axial lines (customer withheld)",
  "mx_src_bomB": "Odd-form evaluation B: connector board, 18 lines with measured dimensions (customer withheld)",
  "mx_src_bomC": "Odd-form list C: desktop board, 35 lines with packaging only (customer withheld)",
  "mx_src_bomD": "Odd-form sample list D: 6 lines with feeder type (customer withheld)",
- "mx_src_mvf": "Southern Machinery bulk-feeder qualification template, 4 connectors",
+ "mx_src_mvf": "S-MVF01 reciprocating belt feeder qualification template, 4 connectors",
  "mx_src_cat": "Southern Machinery Customized Feeder Nozzle Catalog V03",
 })
 # feeders: name, description, option label
@@ -97,7 +97,8 @@ F = {
  "srt7001": ("Reel Terminal Feeder", "Cuts and feeds reel terminals (tab 6.35 × 0.81 mm, 10.21 mm above the PCB) for SMT/THT machines and automated lines; ±0.5 mm, 0.8 s, empty-reel alarm after 3 misses.", "SRT7001 reel terminal"),
  "sspc101": ("Solder Chip Feeder", "Cuts and feeds solder sheet or wire from the coil, width 1–16 mm, thickness 0.1–1 mm; ±0.5 mm, 1.2 s, shortage alarm.", "SSPC101 solder chip"),
  "slf1001": ("Label Feeder", "Peels and presents labels, films, foam, adhesive, copper foil or steel sheet from the roll; liners under 60/80/100 mm, 0.05–0.08 mm thick, 3-inch core, ±0.2 mm X/Y.", "SLF1001 label"),
- "host_tape": ("32 mm tape feeder of the host machine", "Embossed-tape parts run on the insertion machine's own 32 mm tape feeder; Southern Machinery's part is the nozzle or gripper. A Southern Machinery tape feeder for this case is not in Catalog V03: to be confirmed.", "Host 32 mm tape feeder"),
+ "smvf01": ("Reciprocating Belt Feeder", "A separate model from the Catalog V03 SBF2002, with its own specification sheets, manual and videos, and its own component range. Bulk feeding: a motor-driven belt lifts loose parts to a selection track, rejected parts return on the belt, accepted parts reach the pick point by direct vibration, and a fibre-optic sensor confirms the part. IO communication or stand-alone. Component fit is confirmed per part with a sample.", "S-MVF01 reciprocating belt (bulk)"),
+ "host_tape": ("32 mm tape feeder of the host machine", "Confirmed mapping for parts on 32 mm carrier tape: they run on the insertion machine's own 32 mm tape feeder, and Southern Machinery supplies the nozzle or gripper for the part.", "Host 32 mm tape feeder"),
 }
 for k, (n, d, o) in F.items():
     E["mx_f_%sn" % k], E["mx_f_%sd" % k], E["mx_fo_%s" % k] = n, d, o
@@ -123,7 +124,7 @@ N = {
  "desc_conflict": "The description gives 2×21 positions but a 3-pin count; the real pin count must be confirmed.",
  "dimm_size": "A DDR4 DIMM socket is far longer than the 50 mm published for STP1001: needs a customized tray solution.",
  "dims_needed": "Source gives description and packaging only; send dimensions or a sample to confirm the model.",
- "host_tape": "Runs on the host machine's 32 mm tape feeder; Southern Machinery supplies the nozzle or gripper.",
+ "host_tape": "Confirmed mapping: runs on the host machine's own 32 mm tape feeder; Southern Machinery supplies the nozzle or gripper.",
  "joined_desc": "Pitch and pin count joined from a second list that carries the same part number.",
  "outside_env": "Body exceeds the published envelope of the standard model: customized feeder, confirm by sample test.",
  "outside_env_pitch": "22.5 mm pitch and a 26.5 mm body exceed the standard radial feeder; the source evaluation also flags a custom feeder.",
@@ -204,7 +205,7 @@ FR = [
  ("Radial tape (ammo or reel)", "SRF1001", "Tape hole pitch 12.7 or 15 mm; body up to 15×15×30 mm; lead core 0.3–1.0 mm."),
  ("Axial tape", "SAF1001", "Tape width 35, 64 or 92 mm; part 3×3 to 6×20 mm."),
  ("Wire, terminal or solder on a coil", "SJF1001, SRT7001, SSPC101", "Wire Ø0.5–1.2 mm; terminal tab 6.35 × 0.81 mm; solder 1–16 mm wide."),
- ("Embossed tape on reel", "Host machine's tape feeder + custom nozzle", "Southern Machinery tape feeder for this case: to be confirmed."),
+ ("32 mm embossed carrier tape", "Host machine's own 32 mm tape feeder + Southern Machinery nozzle", "Confirmed mapping: the tape feeder is the host machine's; Southern Machinery supplies the nozzle or gripper."),
 ]
 for i, (a, b, c_) in enumerate(FR, 1):
     E["fr%da" % i], E["fr%db" % i], E["fr%dc" % i] = a, b, c_
@@ -231,14 +232,13 @@ for i, (n, v) in enumerate(SP, 1):
     E["spr%dn" % i], E["spr%dv" % i] = n, v
 # disclosure
 DR = [
- ("Belt feeder model name", "Catalog V03: SBF2002 Belt Feeder", "Older presentations and videos: S-MVF01 reciprocating belt bulk feeder", "Both names are shown; whether they are one model is to be confirmed."),
  ("Lead pitch on 3 radial lines (NTC, two PTCs)", "Description: P = 2.54, 5 and 10 mm", "Lead-width column of the same sheet: 4, 13 and 18 mm (the body width)", "Pitch taken from the description; the conflict is noted on each row."),
  ("Nozzle numbers for the same 9 bulk parts", "First copy of evaluation B: gripper series 2000/2001/2014", "Second copy: gripper 2070, vacuum 506/507/508", "Only the nozzle type (gripper or vacuum) is published; both copies agree on it."),
  ("Buzzer packaging", "Evaluation B: bulk, belt or bowl feeder", "List C: tray", "Different boards; both rows are kept and the packaging you receive decides."),
  ("Lead time", "Catalog V03: not stated", "SBF1001 parameter sheet: 1-month customized-solution commitment, 1-day spare parts", "Shown as to be confirmed; the quotation states it per project."),
  ("Company address", "Catalog V03: Room 1806, Block 3, Jinyun COFCO, Qianjin 2nd Road, Bao'an, Shenzhen 518102", "Brand profile: Xixiang, Bao'an District, Shenzhen", "Footer shows Bao'an District, Shenzhen until the current address is confirmed."),
 ]
-E.update({"disc_kick": "Where sources disagree", "disc_h2": "Disclosure: six points printed side by side", "disc_lead": "Nothing averaged, nothing silently picked.",
+E.update({"disc_kick": "Where sources disagree", "disc_h2": "Disclosure: five points printed side by side", "disc_lead": "Nothing averaged, nothing silently picked.",
           "dc_c1": "Topic", "dc_c2": "Source A", "dc_c3": "Source B", "dc_c4": "How we settle it"})
 for i, (a, b, c_, d) in enumerate(DR, 1):
     E["dr%da" % i], E["dr%db" % i], E["dr%dc" % i], E["dr%dd" % i] = a, b, c_, d
@@ -312,7 +312,7 @@ E.update({"svc_kick": "How we work", "svc_h2": "From BOM to running feeder",
  "sv5t": "Commissioning support", "sv5d": "Pick position, IO hand-shake and operator training on your line, remote or on site."})
 # FAQ
 Q = [
- ("Which feeder do I need for an odd-form part?", "Start from the packaging: bulk goes to the SBF1001 bowl or SBF2002 belt, tubes to STF1003, trays to STP1001, radial tape to SRF1001, axial tape to SAF1001, coils to SJF1001, SRT7001 or SSPC101. Then check body size, pitch and lead diameter against that model's envelope in the quick-match table."),
+ ("Which feeder do I need for an odd-form part?", "Start from the packaging: bulk goes to the SBF1001 bowl or SBF2002 belt, tubes to STF1003, trays to STP1001, radial tape to SRF1001, axial tape to SAF1001, coils to SJF1001, SRT7001 or SSPC101. Then check body size, pitch and lead diameter against that model's envelope in the quick-match table. The S-MVF01 reciprocating belt feeder is a separate model from SBF2002, with its own sheet; bulk parts are matched to it per part."),
  ("Do Southern Machinery feeders work with my insertion machine or SMT mounter?", "Every Catalog V03 model connects through an 8-core 16 mm aviation plug and runs with IO communication or stand-alone. The catalog shows installs on Panasonic CM602, JUKI, YAMAHA and Mirae odd-form machines; the exact mounting is confirmed from photos of your feeder rail."),
  ("What is the largest component a feeder can take?", "Up to 50×50×50 mm on the STP1001 tray feeder and 50×50 mm on the SBF1001 bowl (10–300 g). Tube parts go up to 25 mm, belt-fed parts up to 20 mm and radial taped parts up to 15×15×30 mm; anything larger is a customized feeder."),
  ("My X2 capacitor has a 22.5 mm pitch. Can it be fed?", "Not by the standard SRF1001, whose body envelope stops at 15 mm. Such lines are marked 'to be confirmed' in the table and handled as a customized radial feeder after a sample test."),
@@ -329,7 +329,7 @@ for i, (q, a) in enumerate(Q, 1):
 # family, contact, footer
 E.update({
  "fam_kick": "Same family", "fam_h2": "Machines and feeders these parts run on",
- "fam1": "S7900 odd-form insertion machine", "fam2": "SBF1001 vibratory bowl feeder", "fam3": "S3000 radial insertion machine", "fam4": "S4000 axial insertion machine", "fam5": "FUJI NXT feeder calibration jig",
+ "fam1": "S7900 odd-form insertion machine", "fam2": "SBF1001 vibratory bowl feeder", "fam3": "S3000 radial insertion machine", "fam4": "S4000 axial insertion machine", "fam5": "FUJI NXT feeder calibration jig", "fam6": "S-MVF01 reciprocating belt feeder",
  "ct_kick": "Feasibility check", "ct_h2": "Send the odd-form lines that are still manual",
  "ct_lead": "BOM with packaging and dimensions, photos or samples, and your insertion machine model. You get a per-line answer: feeder, nozzle, and what needs testing.",
  "wa_btn": "WhatsApp an engineer", "mail_btn": "Email info@smthelp.com",

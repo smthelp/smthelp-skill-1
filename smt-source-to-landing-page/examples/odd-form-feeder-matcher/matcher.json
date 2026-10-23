@@ -28,6 +28,7 @@
  ],
  "statuses": [
   "fit",
+  "conf",
   "custom",
   "tbc",
   "fam"
@@ -272,6 +273,14 @@
    },
    "envtxt": "3×3×3 – 20×20×20 mm",
    "url": "https://file.autoinsertion.com/public/Southern%20Machinery%20Product/SBF2002%20Reciprocating%20Belt%20Feeder%20%20Southern%20Machinery%20Customized%20Feeder%20Nozzle%20Catalog%20V03.pdf"
+  },
+  {
+   "id": "smvf01",
+   "model": "S-MVF01",
+   "pack": [
+    "bulk"
+   ],
+   "url": "https://file.autoinsertion.com/public/Product%20landing%20Page/s-mvf01-reciprocating-belt-feeder-smart-ems-pcb-assembly.html"
   },
   {
    "id": "stp1001",
@@ -609,7 +618,7 @@
    "OH": 14,
    "feeder": "host_tape",
    "nozzle": "vacuum",
-   "status": "fit",
+   "status": "conf",
    "note": "host_tape",
    "src": "bomB"
   },
@@ -725,7 +734,7 @@
    "OH": 8.71,
    "feeder": "host_tape",
    "nozzle": "vacuum",
-   "status": "fit",
+   "status": "conf",
    "note": "host_tape",
    "src": "bomB"
   },
@@ -741,7 +750,7 @@
    "OH": 12,
    "feeder": "host_tape",
    "nozzle": "gripper",
-   "status": "fit",
+   "status": "conf",
    "note": "host_tape",
    "src": "bomB"
   },
@@ -824,7 +833,7 @@
    "OH": 8.2,
    "feeder": "host_tape",
    "nozzle": "vacuum",
-   "status": "fit",
+   "status": "conf",
    "note": "host_tape",
    "src": "bomB"
   },
@@ -1309,10 +1318,10 @@
    "OH": 14.7,
    "pitch": 3.0,
    "leads": 4,
-   "feeder": "sbf2002",
+   "feeder": "smvf01",
    "alt": "sbf1001",
    "nozzle": "gripper",
-   "status": "fit",
+   "status": "conf",
    "src": "mvf"
   },
   {
@@ -1326,10 +1335,10 @@
    "OH": 14.22,
    "pitch": 2.54,
    "leads": 2,
-   "feeder": "sbf2002",
+   "feeder": "smvf01",
    "alt": "sbf1001",
    "nozzle": "gripper",
-   "status": "fit",
+   "status": "conf",
    "src": "mvf"
   },
   {
@@ -1343,10 +1352,10 @@
    "OH": 14.22,
    "pitch": 3.96,
    "leads": 3,
-   "feeder": "sbf2002",
+   "feeder": "smvf01",
    "alt": "sbf1001",
    "nozzle": "gripper",
-   "status": "fit",
+   "status": "conf",
    "src": "mvf"
   },
   {
@@ -1360,10 +1369,10 @@
    "OH": 14.22,
    "pitch": 3.96,
    "leads": 6,
-   "feeder": "sbf2002",
+   "feeder": "smvf01",
    "alt": "sbf1001",
    "nozzle": "gripper",
-   "status": "fit",
+   "status": "conf",
    "src": "mvf"
   },
   {

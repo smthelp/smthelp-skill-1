@@ -78,9 +78,9 @@ python3 scripts/extract_sources.py <pdf或文件夹...> --out work/<slug>/src
   - `rows[]`：`id, type, spec, cat, pack, L, W, H, OH, pitch, leads, ld, feeder, alt, nozzle, status, note, src`；类型文字 `mx_t_<type>`，备注 `mx_note_<note>`。L ≥ W 为占地尺寸，H 为本体高，OH 为总高；源里没有的值**留空不编**（筛选时由「包含无数据行」复选框决定去留）
 - UI 文案 key：`mx_kick/h2/lead/search/search_ph/cat/pack/feeder/pitch/L/W/H/leads/ld/any/unknown/unknown_v/reset/count({n},{total})/empty/note`、`mx_col_*`（10 列）、`mx_d_*`（详情）、`mx_ask_wa/mail/msg/subj`、`mx_chk_*` 与 `mx_cL/cW/cH/cWt/cLd`（自查框）。build `--check` 会列出缺失 key、未声明代码、未知 feeder
 - 行为：文本搜索（当前语言 + 英文）、9 个筛选、结果计数、重置、空结果提示；行点击/回车打开详情（供料器说明、目录页码、备注、来源）+ WhatsApp/邮件按钮，消息预填元件规格；自查框按目录 envelope 比对；≤760 px 表格变卡片；切语言整表重渲染；数据以 `<script type="application/json" id="matcherData">` 内嵌
-- 状态约定：`fit` 来源评估通过且在目录范围内；`custom` 来源评估要求定制；`tbc` 超出目录范围或有条件；`fam` 只按包装归族（源无尺寸）。未知映射一律写 To be confirmed
+- 状态约定：`fit` 来源评估通过且在目录范围内；`conf` 已确认的匹配但供料器不在目录内（如主机自带载带供料器、非目录型号；示例用 product.css 的 `.mx-s-conf` 着色）；`custom` 来源评估要求定制；`tbc` 超出目录范围或有条件；`fam` 只按包装归族（源无尺寸）。未知映射一律写 To be confirmed
 - 红线：客户名、料号、供应商、价格不进 matcher.json；来源用匿名代号（evaluation A/B…）。product.json 的 `verify.forbidden_terms` 可列客户名做扫描，但这类名单只留在 work/，不进 skill 仓库
-- 完整示例：`examples/odd-form-feeder-matcher/`（product 文件夹 + `tools/make_matcher.py`、`en_src.py`、`blogs_src.py`，脚本输出到示例文件夹本身）；`python3 scripts/build.py examples/odd-form-feeder-matcher --out /tmp/x` 即可重建 2026-10-22 发布页
+- 完整示例：`examples/odd-form-feeder-matcher/`（product 文件夹 + `tools/make_matcher.py`、`en_src.py`、`blogs_src.py`，脚本输出到示例文件夹本身）；`python3 scripts/build.py examples/odd-form-feeder-matcher --out /tmp/x` 即可重建 2026-10-23 修订后的发布页
 
 ### 4c. 可选：NPI / 选型步骤器（section `npi`，1.1.0 起）
 `"npi": {"steps": 5, "checks": [3,3,3,3,3]}`；key：`npi_kick/h2/lead/prev/next/cta/prog({d},{n})`、`n{i}t`、`n{i}d`、`n{i}c{j}`。左侧步骤 tab（键盘方向键、RTL 反向）、右侧说明 + 勾选清单 + 进度条，最后一步按钮跳 `#contact`。`jsonld.howto.step` 写 `"{{npi_steps}}"` 自动生成 HowToStep（含 HowToDirection）。hero 第二个按钮可用 `hero.cta2_href` 指向 `#matcher`。
